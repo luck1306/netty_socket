@@ -1,3 +1,14 @@
 socket-server:
   port: 8085
-  host: 192.168.0.10
+  host: ${IP_ADDRESS}
+spring:
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    username: ${USERNAME}
+    password: ${PASSWORD}
+    url: ${URL}
