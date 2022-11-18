@@ -38,22 +38,24 @@ public class SocketModule {
     }
 
     private ConnectListener onConnected() {
-        return (client -> {
-            Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
-            String room = params.get("room").stream().collect(Collectors.joining());
-            String userName = params.get("user_name").stream().collect(Collectors.joining());
+        return client -> {
+            var params = client.getHandshakeData().getUrlParams();
+            log.info(String.valueOf(params.get("room")));
+            log.info(String.valueOf(params.get("userName")));
+            String room = String.valueOf(params.get("room"));
+            String userName = String.valueOf(params.get("userName"));
             client.joinRoom(room);
             socketService.saveInfoMessage(client, String.format("welcome %s", userName),room);
             log.info("Socket Id[{}] Connected room - [{}] user_name - [{}]]"
                     , client.getSessionId().toString(), room, userName);
-        });
+        };
     }
 
     private DisconnectListener onDisconnected() {
         return (client) -> {
-            Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
-            String userName = params.get("user_name").stream().collect(Collectors.joining());
-            socketService.saveInfoMessage(client, String.format("good bye, %s"), userName);
+            var params = client.getHandshakeData().getUrlParams();
+            String room = params.get("room").stream().collect(Collectors.joining());
+            socketService.saveInfoMessage(client, String.format("good bye, %s"), room);
             log.info("Client[{}] - Disconnected from socket", client.getSessionId().toString());
         };
     }
