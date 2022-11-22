@@ -1,6 +1,11 @@
 package com.example.netty_socket.service;
 
+import com.corundumstudio.socketio.AckRequest;
+import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
+import com.corundumstudio.socketio.annotation.OnConnect;
+import com.corundumstudio.socketio.annotation.OnDisconnect;
+import com.corundumstudio.socketio.annotation.OnEvent;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
@@ -22,41 +27,35 @@ public class SocketModule {
     public SocketModule(SocketIOServer server, SocketService socketService) {
         this.server = server;
         this.socketService = socketService;
-        server.addConnectListener(onConnected()); // if connect socket : execute
-        server.addDisconnectListener(onDisconnected()); // if disconnect socket : execute
-        server.addEventListener("send_message", Message.class, onChatReceived());
         // "server.addEventListener..." can handle corresponding eventName : ("send_message")
     }
 
-    private DataListener<Message> onChatReceived() {
-        return ((client, data, ackSender) -> {
+    @OnEvent(value = "send_message")
+    private void onChatReceived(SocketIOClient client, Message data, AckRequest ack) {
            log.info(data.toString());
            socketService.saveMessage(client, data);
 //           client.getNamespace().getBroadcastOperations().sendEvent("get message", data.getMessage());
 //           "client.getNamespace().getBroadCastOperations..." send all user data include me
-        });
     }
 
-    private ConnectListener onConnected() {
-        return client -> {
-            var params = client.getHandshakeData().getUrlParams();
-            log.info(String.valueOf(params.get("room")));
-            log.info(String.valueOf(params.get("userName")));
-            String room = String.valueOf(params.get("room"));
-            String userName = String.valueOf(params.get("userName"));
-            client.joinRoom(room);
-            socketService.saveInfoMessage(client, String.format("welcome %s", userName),room);
-            log.info("Socket Id[{}] Connected room - [{}] user_name - [{}]]"
-                    , client.getSessionId().toString(), room, userName);
-        };
+    @OnConnect
+    private void onConnected(SocketIOClient client) {
+        var params = client.getHandshakeData().getUrlParams();
+        log.info(String.valueOf(params.get("room")));
+        log.info(String.valueOf(params.get("userName")));
+        String room = String.valueOf(params.get("room"));
+        String userName = String.valueOf(params.get("userName"));
+        client.joinRoom(room);
+        socketService.saveInfoMessage(client, String.format("welcome %s", userName),room);
+        log.info("Socket Id[{}] Connected room - [{}] user_name - [{}]]"
+                , client.getSessionId().toString(), room, userName);
     }
 
-    private DisconnectListener onDisconnected() {
-        return (client) -> {
-            var params = client.getHandshakeData().getUrlParams();
-            String room = params.get("room").stream().collect(Collectors.joining());
-            socketService.saveInfoMessage(client, String.format("good bye, %s"), room);
-            log.info("Client[{}] - Disconnected from socket", client.getSessionId().toString());
-        };
+    @OnDisconnect
+    private void onDisconnected(SocketIOClient client) {
+        var params = client.getHandshakeData().getUrlParams();
+        String room = params.get("room").toString();
+        socketService.saveInfoMessage(client, "good bye", room);
+        log.info("Client[{}] - Disconnected from socket", client.getSessionId().toString());
     }
 }

@@ -13,12 +13,17 @@ public class SocketService {
                             String eventName, // event for receiving message
                             SocketIOClient senderClient, // person to want sending message
                             Message message) { // message
-        Object o = senderClient.getNamespace().getRoomOperations(room).getClients().stream()
-                .filter(client -> !client.getSessionId().equals(senderClient.getSessionId()))
-                .map(client -> {
-                    client.sendEvent(eventName, message);
-                    return null;
-                });
+        for (SocketIOClient client : senderClient.getNamespace().getRoomOperations(room).getClients()) {
+            if(!client.getSessionId().equals(senderClient.getSessionId())) {
+                client.sendEvent(eventName, message);
+            }
+        }
+//        Object o = senderClient.getNamespace().getRoomOperations(room).getClients().stream()
+//                .filter(client -> !client.getSessionId().equals(senderClient.getSessionId()))
+//                .map(client -> {
+//                    client.sendEvent(eventName, message);
+//                    return null;
+//                });
     }
 
     public void saveMessage(SocketIOClient client, Message message) {
