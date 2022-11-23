@@ -1,6 +1,5 @@
 package com.example.netty_socket.config;
 
-import com.corundumstudio.socketio.SocketConfig;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.SpringAnnotationScanner;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,5 +26,10 @@ public class WebSocketConfig {
 //        config.setOrigin("*");
 //        config.setSocketConfig(socketConfig);
         return new SocketIOServer(config);
+    }
+
+    @Bean // for using @Onconnect, @OnDisConnect annotation
+    public SpringAnnotationScanner springAnnotationScanner() {
+        return new SpringAnnotationScanner(socketIOServer());
     }
 }

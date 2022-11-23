@@ -6,16 +6,10 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.OnConnect;
 import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
-import com.corundumstudio.socketio.listener.ConnectListener;
-import com.corundumstudio.socketio.listener.DataListener;
-import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.example.netty_socket.entity.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -41,8 +35,6 @@ public class SocketModule {
     @OnConnect
     private void onConnected(SocketIOClient client) {
         var params = client.getHandshakeData().getUrlParams();
-        log.info(String.valueOf(params.get("room")));
-        log.info(String.valueOf(params.get("userName")));
         String room = String.valueOf(params.get("room"));
         String userName = String.valueOf(params.get("userName"));
         client.joinRoom(room);
@@ -55,7 +47,8 @@ public class SocketModule {
     private void onDisconnected(SocketIOClient client) {
         var params = client.getHandshakeData().getUrlParams();
         String room = params.get("room").toString();
-        socketService.saveInfoMessage(client, "good bye", room);
+        String userName = params.get("userName").toString();
+        socketService.saveInfoMessage(client, String.format("good bye %s", userName), room);
         log.info("Client[{}] - Disconnected from socket", client.getSessionId().toString());
     }
 }
