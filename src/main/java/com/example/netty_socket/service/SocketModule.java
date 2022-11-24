@@ -10,6 +10,9 @@ import com.example.netty_socket.entity.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 
 @Slf4j
 @Component
@@ -26,29 +29,45 @@ public class SocketModule {
 
     @OnEvent(value = "send_message")
     private void onChatReceived(SocketIOClient client, Message data, AckRequest ack) {
-           log.info(data.toString());
-           socketService.saveMessage(client, data);
+            log.info(data.getUserName() + " : " + data.getContent());
+            socketService.sendMessage(String.format("[%s]", data.getRoom()), "read_message_event", client, data);
+//            ack.sendAckData(data); // use for ack data to server
 //           client.getNamespace().getBroadcastOperations().sendEvent("get message", data.getMessage());
 //           "client.getNamespace().getBroadCastOperations..." send all user data include me
-    }
+        }
+
 
     @OnConnect
     private void onConnected(SocketIOClient client) {
-        var params = client.getHandshakeData().getUrlParams();
+        Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
         String room = String.valueOf(params.get("room"));
         String userName = String.valueOf(params.get("userName"));
         client.joinRoom(room);
-        socketService.saveInfoMessage(client, String.format("welcome %s", userName),room);
+        Message message = Message.builder()
+                .content(String.format("welcome %s", userName))
+                .messageType(Message.MessageType.SERVER)
+                .room(room)
+                .userName(userName)
+                .build();
+        socketService.sendMessage(room, "read_message", client, message);
+//        socketService.saveInfoMessage(client, String.format("welcome %s", userName),room);
         log.info("Socket Id[{}] Connected room - [{}] user_name - [{}]]"
                 , client.getSessionId().toString(), room, userName);
     }
 
     @OnDisconnect
     private void onDisconnected(SocketIOClient client) {
-        var params = client.getHandshakeData().getUrlParams();
+        Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
         String room = params.get("room").toString();
         String userName = params.get("userName").toString();
-        socketService.saveInfoMessage(client, String.format("good bye %s", userName), room);
+        Message message = Message.builder()
+                .userName(userName)
+                .room(room)
+                .messageType(Message.MessageType.SERVER)
+                .content(String.format("good bye %s", userName))
+                .build();
+        socketService.sendMessage(room, "read_message", client, message);
+//        socketService.saveInfoMessage(client, String.format("good bye %s", userName), room);
         log.info("Client[{}] - Disconnected from socket", client.getSessionId().toString());
     }
 }

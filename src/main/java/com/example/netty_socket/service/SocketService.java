@@ -18,30 +18,5 @@ public class SocketService {
                 client.sendEvent(eventName, message);
             }
         }
-//        Object o = senderClient.getNamespace().getRoomOperations(room).getClients().stream()
-//                .filter(client -> !client.getSessionId().equals(senderClient.getSessionId()))
-//                .map(client -> {
-//                    client.sendEvent(eventName, message);
-//                    return null;
-//                });
-    }
-
-    public void saveMessage(SocketIOClient client, Message message) {
-        Message data = Message.builder()
-                .messageType(Message.MessageType.CLIENT)
-                .content(message.getContent())
-                .room(message.getRoom())
-                .userName(message.getUserName())
-                .build();
-        sendMessage(message.getRoom(), "read_message", client, data);
-    }
-
-    public void saveInfoMessage(SocketIOClient client, String message, String room) {
-        Message storedMessage = Message.builder()
-                .messageType(Message.MessageType.SERVER)
-                .room(room)
-                .content(message)
-                .build();
-        sendMessage(room, "read_message", client, storedMessage);
     }
 }

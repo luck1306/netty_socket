@@ -25,6 +25,7 @@ public class WebSocketConfig {
         config.setPort(port);
 //        config.setOrigin("*");
 //        config.setSocketConfig(socketConfig);
+//        config.setPingTimeout(60000); // if cannot receive message, send time out event
         return new SocketIOServer(config);
     }
 
