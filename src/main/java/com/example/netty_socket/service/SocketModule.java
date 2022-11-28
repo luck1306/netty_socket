@@ -29,8 +29,8 @@ public class SocketModule {
 
     @OnEvent(value = "send_message")
     private void onChatReceived(SocketIOClient client, Message data, AckRequest ack) {
-            log.info(data.getUserName() + " : " + data.getContent());
-            socketService.sendMessage(String.format("[%s]", data.getRoom()), "read_message_event", client, data);
+//            log.info(data.getUserName() + " : " + data.getContent());
+            socketService.sendMessage(data.getRoom(), "read_message", client, data);
 //            ack.sendAckData(data); // use for ack data to server
 //           client.getNamespace().getBroadcastOperations().sendEvent("get message", data.getMessage());
 //           "client.getNamespace().getBroadCastOperations..." send all user data include me
@@ -40,8 +40,8 @@ public class SocketModule {
     @OnConnect
     private void onConnected(SocketIOClient client) {
         Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
-        String room = String.valueOf(params.get("room"));
-        String userName = String.valueOf(params.get("userName"));
+        String room = String.valueOf(params.get("room").toArray()[0]);
+        String userName = String.valueOf(params.get("userName").toArray()[0]);
         client.joinRoom(room);
         Message message = Message.builder()
                 .content(String.format("welcome %s", userName))
@@ -58,8 +58,9 @@ public class SocketModule {
     @OnDisconnect
     private void onDisconnected(SocketIOClient client) {
         Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
-        String room = params.get("room").toString();
-        String userName = params.get("userName").toString();
+        String room = String.valueOf(params.get("room").toArray()[0]);
+        String userName = String.valueOf(params.get("userName").toArray()[0]);
+        client.leaveRoom(room);
         Message message = Message.builder()
                 .userName(userName)
                 .room(room)
