@@ -7,6 +7,7 @@ import com.corundumstudio.socketio.annotation.OnConnect;
 import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
 import com.example.netty_socket.entity.Message;
+import com.example.netty_socket.entity.MessageType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +46,7 @@ public class SocketModule {
         client.joinRoom(room);
         Message message = Message.builder()
                 .content(String.format("welcome %s", userName))
-                .messageType(Message.MessageType.SERVER)
+                .messageType(MessageType.SERVER)
                 .room(room)
                 .userName(userName)
                 .build();
@@ -64,7 +65,7 @@ public class SocketModule {
         Message message = Message.builder()
                 .userName(userName)
                 .room(room)
-                .messageType(Message.MessageType.SERVER)
+                .messageType(MessageType.SERVER)
                 .content(String.format("good bye %s", userName))
                 .build();
         socketService.sendMessage(room, "read_message", client, message);

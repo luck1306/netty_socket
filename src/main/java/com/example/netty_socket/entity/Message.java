@@ -37,8 +37,4 @@ public class Message {
         this.room = room;
         this.userName = userName;
     }
-
-    public enum MessageType {
-        SERVER, CLIENT
-    }
 }
