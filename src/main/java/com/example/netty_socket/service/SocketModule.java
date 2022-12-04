@@ -8,6 +8,7 @@ import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
 import com.example.netty_socket.entity.Message;
 import com.example.netty_socket.entity.MessageType;
+import com.example.netty_socket.entity.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,15 +23,19 @@ public class SocketModule {
 
     private final SocketService socketService;
 
-    public SocketModule(SocketIOServer server, SocketService socketService) {
+    private final MessageRepository repository;
+
+    public SocketModule(SocketIOServer server, SocketService socketService, MessageRepository repository) {
         this.server = server;
         this.socketService = socketService;
+        this.repository = repository;
         // "server.addEventListener..." can handle corresponding eventName : ("send_message")
     }
 
     @OnEvent(value = "send_message")
     private void onChatReceived(SocketIOClient client, Message data, AckRequest ack) {
 //            log.info(data.getUserName() + " : " + data.getContent());
+        repository.save(data);
             socketService.sendMessage(data.getRoom(), "read_message", client, data);
 //            ack.sendAckData(data); // use for ack data to server
 //           client.getNamespace().getBroadcastOperations().sendEvent("get message", data.getMessage());
